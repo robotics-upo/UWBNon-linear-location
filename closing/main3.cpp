@@ -115,7 +115,7 @@ double zRobot[1000];
 //Contadores de registro de distancia y posiciones 
 int i = 1;
 int k = 0;
-int cont_loam = 1;
+int cont_loam = 0;
 int const n_Distancias = 20;
 //Alturas a la que estan dispuestos todos lo Anchor considerada conocida y del robot
 float AlturaRobotMedia;
@@ -346,7 +346,7 @@ void LOAMCallback(const nav_msgs::Odometry tsg)
 {
     d_bef = sqrt(( xRobot[cont_loam]-tsg.pose.pose.position.x)*( xRobot[cont_loam]-tsg.pose.pose.position.x)+( yRobot[cont_loam]-tsg.pose.pose.position.y)*( yRobot[cont_loam]-tsg.pose.pose.position.y)+( zRobot[cont_loam]-tsg.pose.pose.position.z)*( zRobot[cont_loam]-tsg.pose.pose.position.z));
     //ROS_INFO("Distancia entre posiciones [%f]", d_bef);
-    if (d_bef > 0.2)
+    if (d_bef > 0.5)
     {
         cont_loam++;
         ROS_INFO("Distancia entre posiciones [%d]", cont_loam);
@@ -498,7 +498,7 @@ int main(int argc, char **argv)
     {
         ros::spinOnce();
         //Se define la función de coste del sistema
-        if (cont_loam == 100)
+        if (cont_loam == 50)
         {
             ROS_INFO("Se procede a calcular la posición del nodo");
             //Se asume que las alturas del robot son del rango entre 10 y 1 cm con lo que se calcula la media 
@@ -512,6 +512,8 @@ int main(int argc, char **argv)
                 estCoords[6][2] = 3;                
 
                 ROS_INFO("pOSICION X nodo [%d] [%f]", g, estCoords[g][0]);
+                ROS_INFO("pOSICION y nodo [%d] [%f]", g, estCoords[g][1]);
+                ROS_INFO("pOSICION z nodo [%d] [%f]", g, estCoords[g][2]);
             
                 // Build the problem.
                 Problem problem;
@@ -519,7 +521,7 @@ int main(int argc, char **argv)
                 for (int j = 0; j < cont_loam; ++j) {
 
                     vector<double> rob_i;
-
+ 
                     double t_i;
                     xi = xRobot[j];
                     yi = yRobot[j];
@@ -534,14 +536,13 @@ int main(int argc, char **argv)
                     t_i = Distance[g][j];
 
 
-                    CostFunction* cost_f = new AutoDiffCostFunction<MyCostFunctor, 1, 2, 1>(
+                    CostFunction* cost_f = new AutoDiffCostFunction<MyCostFunctor, 1, 3, 1>(
                                 new MyCostFunctor(rob_i, t_i));
 
 
                     problem.AddResidualBlock(cost_f, NULL, estCoords[g], &estb);
                     //ROS_INFO("contador j [%f]", cost_f);
                 }
-                cont_loam = 0;
 
                 //ROS_INFO("RESIDUAL4");
 
@@ -550,17 +551,17 @@ int main(int argc, char **argv)
                 options.linear_solver_type = ceres::DENSE_QR;
                 options.minimizer_progress_to_stdout = false;
 
-                
+                //options.max_num_iterations = 33;
                 options.check_gradients = false;
-                options.gradient_check_relative_precision = 1e-5;
-                options.function_tolerance = 1e-5;
-                options.parameter_tolerance = 1e-5;
+                // options.gradient_check_relative_precision = 1e5;
+                // options.function_tolerance = 1e-12;
+                // options.parameter_tolerance = 1e-12;
 
                 
 
                 Solver::Summary summary;
                 Solve(options, &problem, &summary);
-                cout << summary.BriefReport() << "\n\n";
+                //cout << summary.BriefReport() << "\n\n";
                 double ext_x;
                 ext_x = estCoords[g][0];
                 double ext_y;
@@ -574,6 +575,9 @@ int main(int argc, char **argv)
 
             }
             
+
+            cont_loam = 0;
+
             
             
 
