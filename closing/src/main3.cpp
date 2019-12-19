@@ -24,6 +24,8 @@
 #include <vector>
 #include <algorithm>
 #include <iostream>
+#include <set>
+#include <utility>
 
 
 #include <tf/tf.h>
@@ -113,7 +115,7 @@ double zRobot[1000];
 //Contadores de registro de distancia y posiciones 
 int i = 1;
 int k = 0;
-int cont_loam = 1;
+int cont_loam = 0;
 int const n_Distancias = 20;
 //Alturas a la que estan dispuestos todos lo Anchor considerada conocida y del robot
 float AlturaRobotMedia;
@@ -135,6 +137,9 @@ double rob_i[3];
 int flag_loam = 0;
 double dist_actual;
 
+set<long> Anchors;
+set<long>::iterator w = Anchors.begin();
+
 
 vector<double> pos;
 double pseudorange;	
@@ -150,8 +155,9 @@ class MyCostFunctor{
         template <typename T>
         bool operator()(const T* const pos, const T* const pos2, T* residual) const {
                     //residual[0] = sqrt((sqrt((pos[0]-T(rob_i[0]))*(pos[0]-T(rob_i[0]))+(pos[1]-T(rob_i[1]))*(pos[1]-T(rob_i[1])+(pos[2]-T(rob_i[2]))*(pos[2]-T(rob_i[2]))))-T(t_i))*(sqrt((pos[0]-T(rob_i[0]))*(pos[0]-T(rob_i[0]))+(pos[1]-T(rob_i[1]))*(pos[1]-T(rob_i[1])+(pos[2]-T(rob_i[2]))*(pos[2]-T(rob_i[2]))))-T(t_i)));
-                    residual[0] = sqrt((pos[0]-T(rob_i[0]))*(pos[0]-T(rob_i[0]))+(pos[1]-T(rob_i[1]))*(pos[1]-T(rob_i[1])+(pos[2]-T(rob_i[2]))*(pos[2]-T(rob_i[2]))))-T(t_i);
-                    ROS_INFO("RESIDUAL");
+                    //residual[0] = sqrt((pos[0]-T(rob_i[0]))*(pos[0]-T(rob_i[0]))+(pos[1]-T(rob_i[1]))*(pos[1]-T(rob_i[1])+(pos[2]-T(rob_i[2]))*(pos[2]-T(rob_i[2]))))-T(t_i);
+                    residual[0] = sqrt((pos[0]-rob_i[0])*(pos[0]-rob_i[0])+(pos[1]-rob_i[1])*(pos[1]-rob_i[1])+(pos[2]-rob_i[2])*(pos[2]-rob_i[2]))-(t_i);
+                    //ROS_INFO("RESIDUAL");
                 return true;
             }
 
@@ -175,30 +181,21 @@ void uwbCallback(const range_msgs::P2PRangeWithPose &msg)
 {
    
         // Identificador[q] = msg.destination_id;
-        // // ROS_INFO("identificador [%f]", Identificador[q]);
-        // q++;
-        // for (h = 0; h < q; h++)
-        // {
-        //     if(Identificador[h] == msg.destination_id)
-        //     {
-        //         ROS_INFO("[%d][%d]", Identificador[h], msg.destination_id);
-        //     }
-        //     else
-        //     {
-        //         Identificador[h] = msg.destination_id;
-        //         ROS_INFO("Identificador registrado [%d]", Identificador[h]);
-        //     }
-            
-        // }
-    
+    Anchors.insert(msg.destination_id);
+    w = Anchors.begin();
+    // cout << "Numero de Anchors distintos: " << Anchors.size() << endl;
+    // while(w != Anchors.end() ) cout << "\t" << *w++ << endl;
+    long dato = *w;
+    long dato2 = *(w++);
+    long dato3 = *((w++)++);
     
 
-    if (Identificador[0] == msg.destination_id)
+    if (dato == msg.destination_id)
     {
         estCoords[0][0] = msg.position.point.x;
         estCoords[0][1] = msg.position.point.y;
         estCoords[0][2] = msg.position.point.z;
-        ROS_INFO("pOSICION X nodo1 [%f]", estCoords[0][0]);
+        //ROS_INFO("pOSICION X nodo1 [%f]", estCoords[0][0]);
 
 
         New_ID1 = 1;
@@ -207,31 +204,31 @@ void uwbCallback(const range_msgs::P2PRangeWithPose &msg)
 
     }
 
-    // if (Identificador[1] == msg.destination_id)
-    // {
-    //     estCoords[1][0] = msg.position.point.x;
-    //     estCoords[1][1] = msg.position.point.y;
-    //     estCoords[1][2] = msg.position.point.z;
-    //     ROS_INFO("pOSICION X nodo2 [%f]", estCoords[1][0]);
+    if (dato2 == msg.destination_id)
+    {
+        estCoords[1][0] = msg.position.point.x;
+        estCoords[1][1] = msg.position.point.y;
+        estCoords[1][2] = msg.position.point.z;
+        //ROS_INFO("pOSICION X nodo2 [%f]", estCoords[1][0]);
 
-    //     New_ID2 = 2;
-    //     distancia2 = msg.range;
-    //     flag2 = 1;
+        New_ID2 = 2;
+        distancia2 = msg.range;
+        flag2 = 1;
     
-    // }
+    }
 
-    // if (Identificador[2] == msg.destination_id)
-    // {
-    //     estCoords[2][0] = msg.position.point.x;
-    //     estCoords[2][1] = msg.position.point.y;
-    //     estCoords[2][2] = msg.position.point.z;
-    //     ROS_INFO("pOSICION X nodo2 [%f]", estCoords[2][0]);
+    if (dato3 == msg.destination_id)
+    {
+        estCoords[2][0] = msg.position.point.x;
+        estCoords[2][1] = msg.position.point.y;
+        estCoords[2][2] = msg.position.point.z;
+       // ROS_INFO("pOSICION X nodo3 [%f]", estCoords[2][0]);
 
-    //     New_ID3 = 3;
-    //     distancia3 = msg.range;
-    //     flag3 = 1;
+        New_ID3 = 3;
+        distancia3 = msg.range;
+        flag3 = 1;
 
-    // }
+    }
 
     // if (Identificador[3] == msg.destination_id)
     // {
@@ -349,10 +346,11 @@ void uwbCallback(const range_msgs::P2PRangeWithPose &msg)
 void LOAMCallback(const nav_msgs::Odometry tsg)
 {
     d_bef = sqrt(( xRobot[cont_loam]-tsg.pose.pose.position.x)*( xRobot[cont_loam]-tsg.pose.pose.position.x)+( yRobot[cont_loam]-tsg.pose.pose.position.y)*( yRobot[cont_loam]-tsg.pose.pose.position.y)+( zRobot[cont_loam]-tsg.pose.pose.position.z)*( zRobot[cont_loam]-tsg.pose.pose.position.z));
-
-    if (d_bef > 0.4)
+    //ROS_INFO("Distancia entre posiciones [%f]", d_bef);
+    if (d_bef > 0.5)
     {
-        cont_loam++;
+        
+        ROS_INFO("Distancia entre posiciones [%d]", cont_loam);
         xRobot[cont_loam] = tsg.pose.pose.position.x;
         yRobot[cont_loam] = tsg.pose.pose.position.y;
         zRobot[cont_loam] = tsg.pose.pose.position.z;
@@ -378,69 +376,70 @@ void LOAMCallback(const nav_msgs::Odometry tsg)
 
         }
 
-        if (flag4 == 1)
-        {
-            Distance[3][cont_loam] = distancia4;
-            flag4 = 0;
+        // if (flag4 == 1)
+        // {
+        //     Distance[3][cont_loam] = distancia4;
+        //     flag4 = 0;
 
-        }
+        // }
 
-        if (flag5 == 1)
-        {
-            Distance[4][cont_loam] = distancia5;
-            flag5 = 0;
+        // if (flag5 == 1)
+        // {
+        //     Distance[4][cont_loam] = distancia5;
+        //     flag5 = 0;
 
-        }
+        // }
 
-        if (flag6 == 1)
-        {
-            Distance[5][cont_loam] = distancia6;
-            flag6 = 0;
+        // if (flag6 == 1)
+        // {
+        //     Distance[5][cont_loam] = distancia6;
+        //     flag6 = 0;
 
-        }
-        if (flag7 == 1)
-        {
-            Distance[6][cont_loam] = distancia7;
-            flag7 = 0;
+        // }
+        // if (flag7 == 1)
+        // {
+        //     Distance[6][cont_loam] = distancia7;
+        //     flag7 = 0;
 
-        }
+        // }
 
-        if (flag8 == 1)
-        {
-            Distance[7][cont_loam] = distancia8;
-            flag8 = 0;
+        // if (flag8 == 1)
+        // {
+        //     Distance[7][cont_loam] = distancia8;
+        //     flag8 = 0;
 
-        }
+        // }
 
-        if (flag9 == 1)
-        {
-            Distance[8][cont_loam] = distancia9;
-            flag9 = 0;
+        // if (flag9 == 1)
+        // {
+        //     Distance[8][cont_loam] = distancia9;
+        //     flag9 = 0;
 
-        }
+        // }
 
-        if (flag10 == 1)
-        {
-            Distance[9][cont_loam] = distancia10;
-            flag10 = 0;
+        // if (flag10 == 1)
+        // {
+        //     Distance[9][cont_loam] = distancia10;
+        //     flag10 = 0;
 
-        }
+        // }
 
-        if (flag11 == 1)
-        {
-            Distance[10][cont_loam] = distancia11;
-            flag11 = 0;
+        // if (flag11 == 1)
+        // {
+        //     Distance[10][cont_loam] = distancia11;
+        //     flag11 = 0;
 
-        }
+        // }
 
-        if (flag12 == 1)
-        {
-            Distance[11][cont_loam] = distancia12;
-            flag12 = 0;
+        // if (flag12 == 1)
+        // {
+        //     Distance[11][cont_loam] = distancia12;
+        //     flag12 = 0;
 
-        }
+        // }
         
         d_bef = 0;
+        cont_loam++;
 
     }
  
@@ -501,24 +500,30 @@ int main(int argc, char **argv)
     {
         ros::spinOnce();
         //Se define la función de coste del sistema
-        if (cont_loam == 100)
+        if (cont_loam == 50)
         {
             ROS_INFO("Se procede a calcular la posición del nodo");
             //Se asume que las alturas del robot son del rango entre 10 y 1 cm con lo que se calcula la media 
 
-            for (g = 0; g < 12; g++)
+            for (g = 0; g < 3; g++)
             {
                 
                 double estb;
-                ROS_INFO("pOSICION X nodo [%d] [%f]", g, estCoords[3][0]);
+                estCoords[6][0] = 3;
+                estCoords[6][1] = 3;
+                estCoords[6][2] = 3;                
+
+                ROS_INFO("pOSICION X nodo [%d] [%f]", g, estCoords[g][0]);
+                ROS_INFO("pOSICION y nodo [%d] [%f]", g, estCoords[g][1]);
+                ROS_INFO("pOSICION z nodo [%d] [%f]", g, estCoords[g][2]);
             
                 // Build the problem.
                 Problem problem;
 
-                for (int j = 0; j < cont_loam; ++j) {
+                for (int j = 0; j < cont_loam; j++) {
 
                     vector<double> rob_i;
-
+ 
                     double t_i;
                     xi = xRobot[j];
                     yi = yRobot[j];
@@ -533,27 +538,26 @@ int main(int argc, char **argv)
                     t_i = Distance[g][j];
 
 
-                    CostFunction* cost_f = new AutoDiffCostFunction<MyCostFunctor, 1, 2, 2>(
+                    CostFunction* cost_f = new AutoDiffCostFunction<MyCostFunctor, 1, 3, 1>(
                                 new MyCostFunctor(rob_i, t_i));
 
 
                     problem.AddResidualBlock(cost_f, NULL, estCoords[g], &estb);
                     //ROS_INFO("contador j [%f]", cost_f);
                 }
-                cont_loam = 0;
 
-                ROS_INFO("RESIDUAL4");
+                //ROS_INFO("RESIDUAL4");
 
 
                 Solver::Options options;
-                //options.linear_solver_type = ceres::DENSE_QR;
-                options.minimizer_progress_to_stdout = true;
+                options.linear_solver_type = ceres::DENSE_QR;
+                options.minimizer_progress_to_stdout = false;
 
-                
+                //options.max_num_iterations = 33;
                 options.check_gradients = false;
-                options.gradient_check_relative_precision = 1e5;
-                options.function_tolerance = 1e-12;
-                options.parameter_tolerance = 1e-12;
+                // options.gradient_check_relative_precision = 1e5;
+                // options.function_tolerance = 1e-12;
+                // options.parameter_tolerance = 1e-12;
 
                 
 
@@ -573,6 +577,9 @@ int main(int argc, char **argv)
 
             }
             
+
+            cont_loam = 0;
+
             
             
 
