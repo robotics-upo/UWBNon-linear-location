@@ -347,7 +347,7 @@ void LOAMCallback(const nav_msgs::Odometry tsg)
 {
     d_bef = sqrt(( xRobot[cont_loam]-tsg.pose.pose.position.x)*( xRobot[cont_loam]-tsg.pose.pose.position.x)+( yRobot[cont_loam]-tsg.pose.pose.position.y)*( yRobot[cont_loam]-tsg.pose.pose.position.y)+( zRobot[cont_loam]-tsg.pose.pose.position.z)*( zRobot[cont_loam]-tsg.pose.pose.position.z));
     //ROS_INFO("Distancia entre posiciones [%f]", d_bef);
-    if (d_bef > 0.5)
+    if (d_bef > 0.8)
     {
         
         ROS_INFO("Distancia entre posiciones [%d]", cont_loam);
@@ -500,7 +500,7 @@ int main(int argc, char **argv)
     {
         ros::spinOnce();
         //Se define la función de coste del sistema
-        if (cont_loam == 50)
+        if (cont_loam == 600)
         {
             ROS_INFO("Se procede a calcular la posición del nodo");
             //Se asume que las alturas del robot son del rango entre 10 y 1 cm con lo que se calcula la media 
@@ -513,12 +513,10 @@ int main(int argc, char **argv)
                 estCoords[6][1] = 3;
                 estCoords[6][2] = 3;                
 
-                ROS_INFO("pOSICION X nodo [%d] [%f]", g, estCoords[g][0]);
-                ROS_INFO("pOSICION y nodo [%d] [%f]", g, estCoords[g][1]);
-                ROS_INFO("pOSICION z nodo [%d] [%f]", g, estCoords[g][2]);
             
                 // Build the problem.
                 Problem problem;
+                ceres::LossFunction *loss_function = new ceres::HuberLoss(0.8);
 
                 for (int j = 0; j < cont_loam; j++) {
 
@@ -540,8 +538,11 @@ int main(int argc, char **argv)
 
                     CostFunction* cost_f = new AutoDiffCostFunction<MyCostFunctor, 1, 3, 1>(
                                 new MyCostFunctor(rob_i, t_i));
+                   
 
 
+
+                    // problem.AddResidualBlock(cost_f, loss_function, estCoords[g], &estb);
                     problem.AddResidualBlock(cost_f, NULL, estCoords[g], &estb);
                     //ROS_INFO("contador j [%f]", cost_f);
                 }
@@ -553,7 +554,7 @@ int main(int argc, char **argv)
                 options.linear_solver_type = ceres::DENSE_QR;
                 options.minimizer_progress_to_stdout = false;
 
-                //options.max_num_iterations = 33;
+                options.max_num_iterations = 200;
                 options.check_gradients = false;
                 // options.gradient_check_relative_precision = 1e5;
                 // options.function_tolerance = 1e-12;
@@ -563,7 +564,7 @@ int main(int argc, char **argv)
 
                 Solver::Summary summary;
                 Solve(options, &problem, &summary);
-                cout << summary.BriefReport() << "\n\n";
+                cout << summary.FullReport() << "\n\n";
                 double ext_x;
                 ext_x = estCoords[g][0];
                 double ext_y;
@@ -575,6 +576,7 @@ int main(int argc, char **argv)
                 cout << "coordenadas:\t  y = " << ext_y << endl;
                 cout << "coordenadas:\t  z = " << ext_z << endl;
 
+                
             }
             
 
