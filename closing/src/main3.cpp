@@ -157,6 +157,7 @@ class MyCostFunctor{
                     //residual[0] = sqrt((sqrt((pos[0]-T(rob_i[0]))*(pos[0]-T(rob_i[0]))+(pos[1]-T(rob_i[1]))*(pos[1]-T(rob_i[1])+(pos[2]-T(rob_i[2]))*(pos[2]-T(rob_i[2]))))-T(t_i))*(sqrt((pos[0]-T(rob_i[0]))*(pos[0]-T(rob_i[0]))+(pos[1]-T(rob_i[1]))*(pos[1]-T(rob_i[1])+(pos[2]-T(rob_i[2]))*(pos[2]-T(rob_i[2]))))-T(t_i)));
                     //residual[0] = sqrt((pos[0]-T(rob_i[0]))*(pos[0]-T(rob_i[0]))+(pos[1]-T(rob_i[1]))*(pos[1]-T(rob_i[1])+(pos[2]-T(rob_i[2]))*(pos[2]-T(rob_i[2]))))-T(t_i);
                     residual[0] = sqrt((pos[0]-rob_i[0])*(pos[0]-rob_i[0])+(pos[1]-rob_i[1])*(pos[1]-rob_i[1])+(pos[2]-rob_i[2])*(pos[2]-rob_i[2]))-(t_i);
+                    //residual[0] = sqrt((pos[0]-rob_i[0])*(pos[0]-rob_i[0])+(pos[1]-rob_i[1])*(pos[1]-rob_i[1])+T(0.5))-(t_i);
                     //ROS_INFO("RESIDUAL");
                 return true;
             }
@@ -349,7 +350,7 @@ void LOAMCallback(const nav_msgs::Odometry tsg)
     //ROS_INFO("Distancia entre posiciones [%f]", d_bef);
     if (d_bef > 0.8)
     {
-        
+        cont_loam++;
         ROS_INFO("Distancia entre posiciones [%d]", cont_loam);
         xRobot[cont_loam] = tsg.pose.pose.position.x;
         yRobot[cont_loam] = tsg.pose.pose.position.y;
@@ -439,7 +440,7 @@ void LOAMCallback(const nav_msgs::Odometry tsg)
         // }
         
         d_bef = 0;
-        cont_loam++;
+    
 
     }
  
@@ -500,7 +501,7 @@ int main(int argc, char **argv)
     {
         ros::spinOnce();
         //Se define la función de coste del sistema
-        if (cont_loam == 600)
+        if (cont_loam == 20)
         {
             ROS_INFO("Se procede a calcular la posición del nodo");
             //Se asume que las alturas del robot son del rango entre 10 y 1 cm con lo que se calcula la media 
@@ -509,9 +510,7 @@ int main(int argc, char **argv)
             {
                 
                 double estb;
-                estCoords[6][0] = 3;
-                estCoords[6][1] = 3;
-                estCoords[6][2] = 3;                
+                               
 
             
                 // Build the problem.
@@ -523,9 +522,9 @@ int main(int argc, char **argv)
                     vector<double> rob_i;
  
                     double t_i;
-                    xi = xRobot[j];
-                    yi = yRobot[j];
-                    zi = zRobot[j]; 
+                    xi = xRobot[j+1];
+                    yi = yRobot[j+1];
+                    zi = zRobot[j+1]; 
 
                     rob_i.push_back(xi);
 
