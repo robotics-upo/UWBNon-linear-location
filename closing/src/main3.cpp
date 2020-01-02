@@ -186,9 +186,9 @@ void uwbCallback(const range_msgs::P2PRangeWithPose &msg)
     w = Anchors.begin();
     // cout << "Numero de Anchors distintos: " << Anchors.size() << endl;
     // while(w != Anchors.end() ) cout << "\t" << *w++ << endl;
-    long dato = *w;
-    long dato2 = *(w++);
-    long dato3 = *((w++)++);
+    long dato = *(w++);
+    long dato2 = *((w++)++);
+    long dato3 = *(((w++)++)++);
     
 
     if (dato == msg.destination_id)
@@ -196,7 +196,7 @@ void uwbCallback(const range_msgs::P2PRangeWithPose &msg)
         estCoords[0][0] = msg.position.point.x;
         estCoords[0][1] = msg.position.point.y;
         estCoords[0][2] = msg.position.point.z;
-        //ROS_INFO("pOSICION X nodo1 [%f]", estCoords[0][0]);
+        ROS_INFO("pOSICION X nodo1 [%f]", estCoords[0][0]);
 
 
         New_ID1 = 1;
@@ -210,7 +210,7 @@ void uwbCallback(const range_msgs::P2PRangeWithPose &msg)
         estCoords[1][0] = msg.position.point.x;
         estCoords[1][1] = msg.position.point.y;
         estCoords[1][2] = msg.position.point.z;
-        //ROS_INFO("pOSICION X nodo2 [%f]", estCoords[1][0]);
+        ROS_INFO("pOSICION X nodo2 [%f]", estCoords[1][0]);
 
         New_ID2 = 2;
         distancia2 = msg.range;
@@ -223,7 +223,7 @@ void uwbCallback(const range_msgs::P2PRangeWithPose &msg)
         estCoords[2][0] = msg.position.point.x;
         estCoords[2][1] = msg.position.point.y;
         estCoords[2][2] = msg.position.point.z;
-       // ROS_INFO("pOSICION X nodo3 [%f]", estCoords[2][0]);
+        ROS_INFO("pOSICION X nodo3 [%f]", estCoords[2][0]);
 
         New_ID3 = 3;
         distancia3 = msg.range;
