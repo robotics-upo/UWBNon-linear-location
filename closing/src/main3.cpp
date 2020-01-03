@@ -193,10 +193,13 @@ void uwbCallback(const range_msgs::P2PRangeWithPose &msg)
 
     if (dato == msg.destination_id)
     {
-        estCoords[0][0] = msg.position.point.x;
-        estCoords[0][1] = msg.position.point.y;
-        estCoords[0][2] = msg.position.point.z;
-        ROS_INFO("pOSICION X nodo1 [%f]", estCoords[0][0]);
+        // estCoords[0][0] = msg.position.point.x;
+        // estCoords[0][1] = msg.position.point.y;
+        // estCoords[0][2] = msg.position.point.z;
+        estCoords[0][0] = -2;
+        estCoords[0][1] = -2;
+        estCoords[0][2] = 0.3;
+        //ROS_INFO("pOSICION X nodo1 [%f]", estCoords[0][0]);
 
 
         New_ID1 = 1;
@@ -207,10 +210,13 @@ void uwbCallback(const range_msgs::P2PRangeWithPose &msg)
 
     if (dato2 == msg.destination_id)
     {
-        estCoords[1][0] = msg.position.point.x;
-        estCoords[1][1] = msg.position.point.y;
-        estCoords[1][2] = msg.position.point.z;
-        ROS_INFO("pOSICION X nodo2 [%f]", estCoords[1][0]);
+        // estCoords[1][0] = msg.position.point.x;
+        // estCoords[1][1] = msg.position.point.y;
+        // estCoords[1][2] = msg.position.point.z;
+        estCoords[1][0] = 2;
+        estCoords[1][1] = 2;
+        estCoords[1][2] = 0.3;
+        //ROS_INFO("pOSICION X nodo2 [%f]", estCoords[1][0]);
 
         New_ID2 = 2;
         distancia2 = msg.range;
@@ -220,10 +226,13 @@ void uwbCallback(const range_msgs::P2PRangeWithPose &msg)
 
     if (dato3 == msg.destination_id)
     {
-        estCoords[2][0] = msg.position.point.x;
-        estCoords[2][1] = msg.position.point.y;
-        estCoords[2][2] = msg.position.point.z;
-        ROS_INFO("pOSICION X nodo3 [%f]", estCoords[2][0]);
+        // estCoords[2][0] = msg.position.point.x;
+        // estCoords[2][1] = msg.position.point.y;
+        // estCoords[2][2] = msg.position.point.z;
+        estCoords[2][0] = -2;
+        estCoords[2][1] = -2;
+        estCoords[2][2] = 0.3;
+        //ROS_INFO("pOSICION X nodo3 [%f]", estCoords[2][0]);
 
         New_ID3 = 3;
         distancia3 = msg.range;
@@ -348,7 +357,7 @@ void LOAMCallback(const nav_msgs::Odometry tsg)
 {
     d_bef = sqrt(( xRobot[cont_loam]-tsg.pose.pose.position.x)*( xRobot[cont_loam]-tsg.pose.pose.position.x)+( yRobot[cont_loam]-tsg.pose.pose.position.y)*( yRobot[cont_loam]-tsg.pose.pose.position.y)+( zRobot[cont_loam]-tsg.pose.pose.position.z)*( zRobot[cont_loam]-tsg.pose.pose.position.z));
     //ROS_INFO("Distancia entre posiciones [%f]", d_bef);
-    if (d_bef > 0.8)
+    if (d_bef > 0.4)
     {
         cont_loam++;
         ROS_INFO("Distancia entre posiciones [%d]", cont_loam);
@@ -501,7 +510,7 @@ int main(int argc, char **argv)
     {
         ros::spinOnce();
         //Se define la función de coste del sistema
-        if (cont_loam == 20)
+        if (cont_loam == 50)
         {
             ROS_INFO("Se procede a calcular la posición del nodo");
             //Se asume que las alturas del robot son del rango entre 10 y 1 cm con lo que se calcula la media 
@@ -522,9 +531,9 @@ int main(int argc, char **argv)
                     vector<double> rob_i;
  
                     double t_i;
-                    xi = xRobot[j+1];
-                    yi = yRobot[j+1];
-                    zi = zRobot[j+1]; 
+                    xi = xRobot[j];
+                    yi = yRobot[j];
+                    zi = zRobot[j]; 
 
                     rob_i.push_back(xi);
 
