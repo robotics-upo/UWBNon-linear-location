@@ -2,10 +2,10 @@
 
 <launch>
   <!-- LOCALIZATION ALGORITHM --> 
-  <node pkg="closing" 
-        type="maplp" 
-        name="maplp" 
-        output="screen" />        
+<!--  <node pkg="closing" 
+        type="main3" 
+        name="main3" 
+        output="screen" />        -->
 
   <node pkg="closing" 
         type="closing" 
